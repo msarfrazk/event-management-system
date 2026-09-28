@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zircon Marquee — Booking Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --maroon:#6E1E2B; --maroon-dark:#4E141E; --gold:#C9972C; --ivory:#FAF6EE;
+  --ink:#2B2420; --ink-soft:#6B5F55; --line:#E4D9C8; --ok:#4F7A5B; --ok-bg:#E9F1EA;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%}
+body{margin:0;background:var(--ivory);color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;line-height:1.5}
+h1,h2,h3{font-family:'Fraunces',serif;font-weight:700;margin:0}
+header{background:var(--maroon);color:var(--ivory);padding:14px 16px calc(14px + env(safe-area-inset-top,0px));position:sticky;top:0;z-index:10}
+header .top{display:flex;align-items:baseline;justify-content:space-between}
+header h1{font-size:20px;letter-spacing:.2px}
+.logo{display:flex;align-items:center;gap:8px}
+.logo span{letter-spacing:.6px}
+header .tag{font-size:12px;color:var(--gold);font-family:'Inter',sans-serif}
+nav{display:flex;gap:2px;margin-top:12px;overflow-x:auto}
+nav button{background:none;border:none;color:var(--ivory);opacity:.7;padding:8px 10px;font-size:13px;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
+nav button.active{opacity:1;border-bottom-color:var(--gold);font-weight:600}
+main{padding:16px;max-width:640px;margin:0 auto;padding-bottom:40px}
+section{display:none}
+section.active{display:block}
+.card{border:1px solid var(--line);border-radius:2px;padding:14px;margin-bottom:12px;background:#fff}
+.hall-name{font-size:18px;margin-bottom:2px}
+.meta{color:var(--ink-soft);font-size:13px;margin:4px 0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.tag{font-size:11px;border:1px solid var(--line);border-radius:2px;padding:2px 7px;color:var(--ink-soft)}
+.price{color:var(--maroon);font-weight:600;font-family:'Fraunces',serif;font-size:16px}
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+select,input{border:1px solid var(--line);background:#fff;padding:8px 10px;font-size:13px;font-family:'Inter',sans-serif;border-radius:2px;color:var(--ink)}
+label{font-size:12px;color:var(--ink-soft);display:block;margin-bottom:4px}
+.field{margin-bottom:10px}
+.field input,.field select{width:100%}
+button.btn{background:var(--maroon);color:#fff;border:none;padding:10px 16px;font-size:14px;border-radius:2px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500}
+button.btn:hover{background:var(--maroon-dark)}
+button.btn.ghost{background:none;border:1px solid var(--maroon);color:var(--maroon)}
+.divider{height:1px;background:var(--line);margin:16px 0}
+.status{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px}
+.status.pending{background:#F5E9D0;color:#8A6A1B}
+.status.confirmed{background:var(--ok-bg);color:var(--ok)}
+.status.completed{background:#E4E9F0;color:#3D5A80}
+.status.cancelled{background:#F1E1E1;color:#8A2B2B}
+.empty{color:var(--ink-soft);font-style:italic;padding:20px 0;text-align:center}
+.error{color:#8A2B2B;font-size:13px;margin:8px 0}
+.row{display:flex;justify-content:space-between;align-items:center}
+.small{font-size:12px;color:var(--ink-soft)}
+.hero{font-size:13px;color:var(--ink-soft);margin-bottom:16px}
+.overlay{position:fixed;inset:0;background:rgba(43,36,32,.5);display:none;align-items:flex-end;z-index:20}
+.overlay.active{display:flex}
+.sheet{background:#fff;width:100%;max-height:88vh;overflow-y:auto;border-radius:8px 8px 0 0;padding:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+.close{float:right;background:none;border:none;font-size:18px;color:var(--ink-soft);cursor:pointer}
+.stat{text-align:center;flex:1}
+.stat b{font-family:'Fraunces',serif;font-size:22px;display:block;color:var(--maroon)}
+.stat span{font-size:11px;color:var(--ink-soft)}
+.statrow{display:flex;border:1px solid var(--line);background:#fff;padding:14px 0;margin-bottom:16px}
+.authbar{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--gold);margin-top:8px}
+.authbar button{background:none;border:none;color:var(--gold);text-decoration:underline;cursor:pointer;font-size:12px;padding:0}
+.cal{margin:10px 0}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-family:'Fraunces',serif;font-weight:700}
+.cal-head button{background:none;border:1px solid var(--line);border-radius:2px;width:28px;height:28px;cursor:pointer;color:var(--ink);font-size:14px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-dow{font-size:10px;color:var(--ink-soft);padding-bottom:2px}
+.cal-day{padding:8px 0;border-radius:4px;cursor:pointer;border:1px solid transparent;font-size:13px}
+.cal-day.blank{visibility:hidden}
+.cal-day.past{color:var(--ink-soft);opacity:.35;cursor:not-allowed}
+.cal-day.booked{background:#F1E1E1;color:#8A2B2B;text-decoration:line-through;cursor:not-allowed}
+.cal-day.selected{background:var(--maroon);color:#fff;font-weight:600}
+.cal-day.open:hover{border-color:var(--maroon)}
+.cal-legend{display:flex;gap:14px;font-size:11px;color:var(--ink-soft);margin-top:6px}
+.cal-legend span{display:inline-flex;align-items:center;gap:5px}
+.cal-swatch{width:10px;height:10px;border-radius:2px;display:inline-block}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ivory:#1C1815; --ink:#EDE6DB; --ink-soft:#A69C8E; --line:#3A322B; --ok-bg:#1E2A20; }
+  body{background:var(--ivory)} .card{background:#241F1A} select,input{background:#241F1A;color:var(--ink)} .sheet{background:#241F1A}
+}
+:root[data-theme="dark"]{ --ivory:#1C1815; --ink:#EDE6DB; --ink-soft:#A69C8E; --line:#3A322B; --ok-bg:#1E2A20; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <h1 class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9972C" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><polygon points="12,2 21,9 12,22 3,9" fill="rgba(201,151,44,.18)"/><polyline points="3,9 21,9"/><polyline points="8,9 12,22 16,9"/><polyline points="8,9 12,2 16,9"/></svg><span>Zircon Marquee</span></h1>
+    <span class="tag">Pakistan</span>
+  </div>
+  <nav id="nav">
+    <button data-tab="browse" class="active">Browse</button>
+    <button data-tab="bookings">My Bookings</button>
+    <button data-tab="vendor">Vendor</button>
+    <button data-tab="admin">Admin</button>
+  </nav>
+  <div class="authbar" id="authbar"></div>
+</header>
+
+<main>
+
+<section id="browse" class="active">
+  <p class="hero">Live data from the API — every visitor sees the same bookings.</p>
+  <div class="filters">
+    <select id="f-city"><option value="">All cities</option></select>
+    <select id="f-gen"><option value="">Any power backup</option><option value="1">Generator backup</option></select>
+  </div>
+  <div id="hall-list"></div>
+</section>
+
+<section id="bookings">
+  <div class="field">
+    <label>Your phone number (used to find your bookings)</label>
+    <input id="lookup-phone" placeholder="03xx-xxxxxxx">
+  </div>
+  <button class="btn ghost" onclick="renderMyBookings()">Find my bookings</button>
+  <div class="divider"></div>
+  <div id="my-bookings-list"></div>
+</section>
+
+<section id="vendor">
+  <div id="vendor-login-box"></div>
+  <div id="vendor-dash" style="display:none">
+    <div class="statrow" id="vendor-stats"></div>
+    <h3 style="margin-bottom:10px;font-size:15px">Bookings for your halls</h3>
+    <div id="vendor-bookings"></div>
+    <div class="divider"></div>
+    <h3 style="margin-bottom:10px;font-size:15px">Add a new hall</h3>
+    <div class="card">
+      <div class="field"><label>Hall name</label><input id="nh-name"></div>
+      <div class="field"><label>City</label><input id="nh-city"></div>
+      <div class="field"><label>Capacity (max guests)</label><input id="nh-cap" type="number"></div>
+      <div class="field"><label>Price per head (PKR)</label><input id="nh-price" type="number"></div>
+      <div class="field"><label><input type="checkbox" id="nh-gen" style="width:auto"> Has generator backup</label></div>
+      <button class="btn" onclick="addHall()">Add hall</button>
+    </div>
+  </div>
+</section>
+
+<section id="admin">
+  <div id="admin-login-box"></div>
+  <div id="admin-dash" style="display:none">
+    <div class="statrow" id="admin-stats"></div>
+    <h3 style="margin-bottom:10px;font-size:15px">All bookings</h3>
+    <div id="admin-bookings"></div>
+  </div>
+</section>
+
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="sheet" id="sheet-content"></div>
+</div>
+
+<script>
+const API = '/api';
+let session = null; // { token, user: {id,name,role} }
+try {
+  const raw = localStorage.getItem('mms-session');
+  if (raw) session = JSON.parse(raw);
+} catch (e) { /* ignore corrupt session */ }
+
+function saveSession(s) {
+  session = s;
+  try {
+    if (s) localStorage.setItem('mms-session', JSON.stringify(s));
+    else localStorage.removeItem('mms-session');
+  } catch (e) { /* private browsing etc. — session just won't persist across reloads */ }
+  renderAuthbar();
+}
+
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (session && session.token) headers['Authorization'] = 'Bearer ' + session.token;
+  const res = await fetch(API + path, { ...opts, headers });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function fmt(n) { return 'PKR ' + Number(n).toLocaleString(); }
+
+function renderAuthbar() {
+  const bar = document.getElementById('authbar');
+  if (session) {
+    bar.innerHTML = `<span>${session.user.name} (${session.user.role})</span><button onclick="logout()">Log out</button>`;
+  } else {
+    bar.innerHTML = `<span>Browsing as guest</span><span></span>`;
+  }
+}
+function logout() { saveSession(null); renderVendorTab(); renderAdmin(); }
+
+// ---- NAV ----
+document.getElementById('nav').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-tab]');
+  if (!btn) return;
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('main section').forEach(s => s.classList.remove('active'));
+  document.getElementById(btn.dataset.tab).classList.add('active');
+  if (btn.dataset.tab === 'vendor') renderVendorTab();
+  if (btn.dataset.tab === 'admin') renderAdmin();
+});
+
+// ---- BROWSE ----
+async function populateCityFilter() {
+  const halls = await api('/halls');
+  const sel = document.getElementById('f-city');
+  const cities = [...new Set(halls.map(h => h.city))];
+  cities.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+  return halls;
+}
+async function renderHalls() {
+  const city = document.getElementById('f-city').value;
+  const gen = document.getElementById('f-gen').value;
+  const list = document.getElementById('hall-list');
+  list.innerHTML = '<div class="empty">Loading…</div>';
+  const params = new URLSearchParams();
+  if (city) params.set('city', city);
+  if (gen) params.set('generator', gen);
+  let halls;
+  try { halls = await api('/halls?' + params.toString()); }
+  catch (e) { list.innerHTML = `<div class="error">${e.message}</div>`; return; }
+  list.innerHTML = '';
+  if (!halls.length) { list.innerHTML = '<div class="empty">No halls match those filters.</div>'; return; }
+  halls.forEach(h => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <div class="hall-name">${h.name}</div>
+      <div class="meta">${h.city} · up to ${h.capacity} guests · by ${h.vendor_name}</div>
+      <div class="tags">${h.generator ? '<span class="tag">Generator backup</span>' : ''}<span class="tag">Cap ${h.capacity}</span></div>
+      <div class="row" style="margin-top:8px">
+        <span class="price">${fmt(h.price)} / head</span>
+        <button class="btn" onclick="openBooking('${h.id}')">Book</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+document.getElementById('f-city').addEventListener('change', renderHalls);
+document.getElementById('f-gen').addEventListener('change', renderHalls);
+
+// ---- BOOKING SHEET (with availability calendar) ----
+let calState = null; // { hallId, price, year, month, booked:Set, selected: 'YYYY-MM-DD'|null }
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function toDateStr(y, m, d) { return `${y}-${pad2(m + 1)}-${pad2(d)}`; }
+
+async function openBooking(hallId) {
+  const halls = await api('/halls');
+  const hall = halls.find(h => h.id === hallId);
+  let bookedRows = [];
+  try { bookedRows = await api(`/halls/${hallId}/dates`); } catch (e) { /* calendar just shows nothing pre-booked */ }
+  const booked = new Set(bookedRows.map(r => r.event_date));
+
+  const today = new Date();
+  calState = { hallId, price: hall.price, year: today.getFullYear(), month: today.getMonth(), booked, selected: null };
+
+  const sheet = document.getElementById('sheet-content');
+  sheet.innerHTML = `
+    <button class="close" onclick="closeSheet()">✕</button>
+    <h3 style="margin-bottom:4px">${hall.name}</h3>
+    <p class="small" style="margin-bottom:16px">${hall.city} · ${fmt(hall.price)} per head</p>
+    <label>Pick an available date</label>
+    <div class="cal" id="cal"></div>
+    <div class="cal-legend">
+      <span><span class="cal-swatch" style="background:#F1E1E1"></span>Already booked</span>
+      <span><span class="cal-swatch" style="background:var(--maroon)"></span>Your selection</span>
+    </div>
+    <div class="field" style="margin-top:14px"><label>Your name</label><input id="bk-name"></div>
+    <div class="field"><label>Phone number</label><input id="bk-phone" placeholder="03xx-xxxxxxx"></div>
+    <div class="field"><label>Event type</label>
+      <select id="bk-type"><option>Wedding</option><option>Walima</option><option>Mehndi</option><option>Corporate</option><option>Other</option></select>
+    </div>
+    <div class="field"><label>Guest count</label><input id="bk-guests" type="number" value="200" oninput="updateEstimate()"></div>
+    <div class="card" style="background:var(--ivory)">
+      <div class="row"><span class="small">Estimated total</span><b id="est-total">—</b></div>
+      <div class="row"><span class="small">Token (20%) due now</span><b id="est-token">—</b></div>
+    </div>
+    <div id="bk-error"></div>
+    <button class="btn" style="width:100%;margin-top:12px" onclick="confirmBooking()">Confirm & pay token</button>
+    <p class="small" style="margin-top:8px">Payment simulated for this demo — see server/routes/api.js to wire in real JazzCash / Easypaisa checkout.</p>
+  `;
+  document.getElementById('overlay').classList.add('active');
+  renderCalendar();
+  updateEstimate();
+}
+
+function renderCalendar() {
+  const { year, month, booked, selected } = calState;
+  const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayStr = toDateStr(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  const dow = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+  let cells = dow.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < firstDow; i++) cells += `<div class="cal-day blank"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = toDateStr(year, month, d);
+    const isPast = ds < todayStr;
+    const isBooked = booked.has(ds);
+    const isSelected = ds === selected;
+    const cls = isSelected ? 'selected' : isBooked ? 'booked' : isPast ? 'past' : 'open';
+    const click = (!isPast && !isBooked) ? `onclick="selectDate('${ds}')"` : '';
+    cells += `<div class="cal-day ${cls}" ${click}>${d}</div>`;
+  }
+
+  document.getElementById('cal').innerHTML = `
+    <div class="cal-head">
+      <button onclick="navMonth(-1)">‹</button>
+      <span>${monthName}</span>
+      <button onclick="navMonth(1)">›</button>
+    </div>
+    <div class="cal-grid">${cells}</div>
+  `;
+}
+
+function navMonth(delta) {
+  calState.month += delta;
+  if (calState.month < 0) { calState.month = 11; calState.year--; }
+  if (calState.month > 11) { calState.month = 0; calState.year++; }
+  renderCalendar();
+}
+
+function selectDate(ds) {
+  calState.selected = ds;
+  renderCalendar();
+}
+
+function updateEstimate() {
+  const guests = Number(document.getElementById('bk-guests').value) || 0;
+  const total = guests * calState.price;
+  document.getElementById('est-total').textContent = fmt(total);
+  document.getElementById('est-token').textContent = fmt(Math.round(total * 0.20));
+}
+function closeSheet() { document.getElementById('overlay').classList.remove('active'); calState = null; }
+
+async function confirmBooking() {
+  const customerName = document.getElementById('bk-name').value.trim();
+  const phone = document.getElementById('bk-phone').value.trim();
+  const eventDate = calState.selected;
+  const eventType = document.getElementById('bk-type').value;
+  const guests = Number(document.getElementById('bk-guests').value) || 0;
+  const errBox = document.getElementById('bk-error');
+  if (!customerName || !phone || !eventDate || !guests) {
+    errBox.innerHTML = '<div class="error">Please fill in your details and pick a date on the calendar.</div>'; return;
+  }
+  try {
+    await api('/bookings', { method: 'POST', body: JSON.stringify({ hallId: calState.hallId, customerName, phone, eventDate, eventType, guests }) });
+  } catch (e) {
+    errBox.innerHTML = `<div class="error">${e.message}</div>`; return;
+  }
+  const savedPhone = phone;
+  closeSheet();
+  document.getElementById('lookup-phone').value = savedPhone;
+  document.querySelector('nav button[data-tab="bookings"]').click();
+  renderMyBookings();
+}
+
+// ---- MY BOOKINGS ----
+async function renderMyBookings() {
+  const phone = document.getElementById('lookup-phone').value.trim();
+  const list = document.getElementById('my-bookings-list');
+  if (!phone) { list.innerHTML = '<div class="empty">Enter your phone number above.</div>'; return; }
+  list.innerHTML = '<div class="empty">Loading…</div>';
+  let rows;
+  try { rows = await api('/bookings?phone=' + encodeURIComponent(phone)); }
+  catch (e) { list.innerHTML = `<div class="error">${e.message}</div>`; return; }
+  list.innerHTML = '';
+  if (!rows.length) { list.innerHTML = '<div class="empty">No bookings found for that number.</div>'; return; }
+  rows.forEach(b => list.appendChild(bookingCard(b, b.hall_name)));
+}
+function bookingCard(b, hallName, showActions) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.innerHTML = `
+    <div class="row"><span class="hall-name" style="font-size:15px">${hallName}</span><span class="status ${b.status}">${b.status}</span></div>
+    <div class="meta">${b.event_date} · ${b.event_type} · ${b.guests} guests</div>
+    <div class="row"><span class="small">Total ${fmt(b.total)}</span><span class="small">Token paid ${fmt(b.token_paid)}</span></div>
+    ${showActions ? `<div class="divider"></div><div class="row">
+      ${b.status === 'pending' ? `<button class="btn ghost" onclick="setStatus('${b.id}','confirmed')">Confirm booking</button>` : ''}
+      ${b.status === 'confirmed' ? `<button class="btn ghost" onclick="setStatus('${b.id}','completed')">Mark completed</button>` : ''}
+      <span class="small">${b.customer_name} · ${b.phone}</span>
+    </div>` : ''}
+  `;
+  return div;
+}
+async function setStatus(id, status) {
+  try { await api('/bookings/' + id, { method: 'PATCH', body: JSON.stringify({ status }) }); }
+  catch (e) { alert(e.message); return; }
+  renderVendorTab(); renderAdmin();
+}
+
+// ---- VENDOR TAB ----
+function loginForm(box, role, onSuccess) {
+  box.innerHTML = `
+    <div class="card">
+      <h3 style="font-size:15px;margin-bottom:10px">${role === 'vendor' ? 'Vendor' : 'Admin'} login</h3>
+      <div class="field"><label>Phone number</label><input id="${role}-phone" placeholder="03xx-xxxxxxx"></div>
+      <div class="field"><label>Password</label><input id="${role}-pass" type="password"></div>
+      <div id="${role}-err"></div>
+      <button class="btn" onclick="doLogin('${role}')">Log in</button>
+      ${role === 'vendor' ? `<p class="small" style="margin-top:10px">New vendor? <button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="showVendorRegister()">Register your business</button></p>` : ''}
+      <p class="small" style="margin-top:10px">Seeded demo login: 03001111111 / vendor123 (vendor), 03000000000 / admin123 (admin)</p>
+    </div>`;
+}
+async function doLogin(role) {
+  const phone = document.getElementById(`${role}-phone`).value.trim();
+  const password = document.getElementById(`${role}-pass`).value;
+  const errBox = document.getElementById(`${role}-err`);
+  try {
+    const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ phone, password }) });
+    if (data.user.role !== role) throw new Error(`That account is a ${data.user.role}, not a ${role}.`);
+    saveSession(data);
+  } catch (e) { errBox.innerHTML = `<div class="error">${e.message}</div>`; return; }
+  if (role === 'vendor') renderVendorTab(); else renderAdmin();
+}
+function showVendorRegister() {
+  const box = document.getElementById('vendor-login-box');
+  box.innerHTML = `
+    <div class="card">
+      <h3 style="font-size:15px;margin-bottom:10px">Register your business</h3>
+      <div class="field"><label>Your name</label><input id="rv-name"></div>
+      <div class="field"><label>Business name</label><input id="rv-biz"></div>
+      <div class="field"><label>Phone number</label><input id="rv-phone" placeholder="03xx-xxxxxxx"></div>
+      <div class="field"><label>Password</label><input id="rv-pass" type="password"></div>
+      <div id="rv-err"></div>
+      <button class="btn" onclick="doVendorRegister()">Create account</button>
+    </div>`;
+}
+async function doVendorRegister() {
+  const name = document.getElementById('rv-name').value.trim();
+  const businessName = document.getElementById('rv-biz').value.trim();
+  const phone = document.getElementById('rv-phone').value.trim();
+  const password = document.getElementById('rv-pass').value;
+  const errBox = document.getElementById('rv-err');
+  try {
+    const data = await api('/auth/register', { method: 'POST', body: JSON.stringify({ name, businessName, phone, password, role: 'vendor' }) });
+    saveSession(data);
+  } catch (e) { errBox.innerHTML = `<div class="error">${e.message}</div>`; return; }
+  renderVendorTab();
+}
+async function renderVendorTab() {
+  const box = document.getElementById('vendor-login-box');
+  const dash = document.getElementById('vendor-dash');
+  if (!session || session.user.role !== 'vendor') {
+    dash.style.display = 'none'; box.style.display = 'block';
+    loginForm(box, 'vendor'); return;
+  }
+  box.style.display = 'none'; dash.style.display = 'block';
+  let data;
+  try { data = await api('/vendor/me'); }
+  catch (e) { logout(); return; }
+  document.getElementById('vendor-stats').innerHTML = `
+    <div class="stat"><b>${data.halls.length}</b><span>Halls listed</span></div>
+    <div class="stat"><b>${data.bookings.length}</b><span>Total bookings</span></div>
+    <div class="stat"><b>${fmt(data.bookings.reduce((s, b) => s + b.token_paid, 0))}</b><span>Tokens collected</span></div>
+  `;
+  const list = document.getElementById('vendor-bookings');
+  list.innerHTML = '';
+  if (!data.bookings.length) { list.innerHTML = '<div class="empty">No bookings yet.</div>'; return; }
+  data.bookings.forEach(b => list.appendChild(bookingCard(b, b.hall_name, true)));
+}
+async function addHall() {
+  const name = document.getElementById('nh-name').value.trim();
+  const city = document.getElementById('nh-city').value.trim();
+  const capacity = Number(document.getElementById('nh-cap').value);
+  const price = Number(document.getElementById('nh-price').value);
+  const generator = document.getElementById('nh-gen').checked;
+  if (!name || !city || !capacity || !price) { alert('Please fill in all hall fields.'); return; }
+  try { await api('/halls', { method: 'POST', body: JSON.stringify({ name, city, capacity, price, generator }) }); }
+  catch (e) { alert(e.message); return; }
+  document.getElementById('nh-name').value = ''; document.getElementById('nh-city').value = '';
+  document.getElementById('nh-cap').value = ''; document.getElementById('nh-price').value = ''; document.getElementById('nh-gen').checked = false;
+  renderVendorTab();
+  alert('Hall added — visible immediately in Browse.');
+}
+
+// ---- ADMIN ----
+async function renderAdmin() {
+  const box = document.getElementById('admin-login-box');
+  const dash = document.getElementById('admin-dash');
+  if (!session || session.user.role !== 'admin') {
+    dash.style.display = 'none'; box.style.display = 'block';
+    loginForm(box, 'admin'); return;
+  }
+  box.style.display = 'none'; dash.style.display = 'block';
+  let data;
+  try { data = await api('/admin/overview'); }
+  catch (e) { logout(); return; }
+  document.getElementById('admin-stats').innerHTML = `
+    <div class="stat"><b>${data.vendorCount}</b><span>Vendors</span></div>
+    <div class="stat"><b>${data.bookings.length}</b><span>Bookings</span></div>
+    <div class="stat"><b>${fmt(data.commission)}</b><span>Platform commission</span></div>
+  `;
+  const list = document.getElementById('admin-bookings');
+  list.innerHTML = '';
+  if (!data.bookings.length) { list.innerHTML = '<div class="empty">No bookings on the platform yet.</div>'; return; }
+  data.bookings.forEach(b => list.appendChild(bookingCard(b, `${b.hall_name} · ${b.vendor_name}`)));
+}
+
+// ---- INIT ----
+renderAuthbar();
+populateCityFilter().then(renderHalls);
+</script>
+</body>
+</html>
