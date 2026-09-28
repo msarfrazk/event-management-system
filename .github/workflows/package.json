@@ -1,0 +1,13 @@
+{
+  "name": "zircon-marquee-api",
+  "version": "1.0.0",
+  "description": "Multi-vendor marquee/banquet hall booking platform — backend + frontend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --experimental-sqlite server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {}
+}
